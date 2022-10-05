@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -6,10 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper;
 
 namespace ClickHouse.DapperExtensions
 {
+    /// <summary>
+    /// The SQL mapper extensions
+    /// </summary>
     public static partial class SqlMapperExtensions
     {
         /// <summary>
@@ -23,7 +26,8 @@ namespace ClickHouse.DapperExtensions
         /// <param name="transaction">The transaction to run under, null (the default) if none</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
         /// <returns>Entity of T</returns>
-        public static async Task<T> GetAsync<T>(this IDbConnection connection, dynamic id, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        public static async Task<T> GetAsync<T>(this IDbConnection connection, dynamic id, IDbTransaction transaction = null, int? commandTimeout = null)
+            where T : class
         {
             var type = typeof(T);
             if (!GetQueries.TryGetValue(type.TypeHandle, out string sql))
@@ -79,7 +83,8 @@ namespace ClickHouse.DapperExtensions
         /// <param name="transaction">The transaction to run under, null (the default) if none</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
         /// <returns>Entity of T</returns>
-        public static Task<IEnumerable<T>> GetAllAsync<T>(this IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        public static Task<IEnumerable<T>> GetAllAsync<T>(this IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null)
+            where T : class
         {
             var type = typeof(T);
             var cacheType = typeof(List<T>);
@@ -97,12 +102,14 @@ namespace ClickHouse.DapperExtensions
             {
                 return connection.QueryAsync<T>(sql, null, transaction, commandTimeout);
             }
+
             return GetAllAsyncImpl<T>(connection, transaction, commandTimeout, sql, type);
         }
 
-        private static async Task<IEnumerable<T>> GetAllAsyncImpl<T>(IDbConnection connection, IDbTransaction transaction, int? commandTimeout, string sql, Type type) where T : class
+        private static async Task<IEnumerable<T>> GetAllAsyncImpl<T>(IDbConnection connection, IDbTransaction transaction, int? commandTimeout, string sql, Type type)
+            where T : class
         {
-            var result = await connection.QueryAsync(sql).ConfigureAwait(false);
+            var result = await connection.QueryAsync(sql, transaction: transaction, commandTimeout: commandTimeout).ConfigureAwait(false);
             var list = new List<T>();
             foreach (IDictionary<string, object> res in result)
             {
@@ -204,8 +211,5 @@ namespace ClickHouse.DapperExtensions
             await connection.ExecuteAsync(cmd, null, null, commandTimeout);
             if (wasClosed) connection.Close();
         }
-
     }
-
-
 }
