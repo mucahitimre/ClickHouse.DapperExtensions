@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace ClickHouse.DapperExtensions.Sample
 {
@@ -8,8 +7,12 @@ namespace ClickHouse.DapperExtensions.Sample
     {
         [Date]
         public DateTime ResisterDate { get; set; }
+
         public DateTime ResisterTime { get; set; }
+
+        [Key]
         public string Name { get; set; }
+
         public int Age { get; set; }
     }
 }

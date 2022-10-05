@@ -21,6 +21,8 @@ namespace ClickHouse.DapperExtensions.Sample
                 Console.WriteLine("Insert single success.");
 
                 conn.InsertBulk(new List<TestUser>(){ user, user2 });
+
+                var users = conn.GetAll<TestUser>();
                 Console.WriteLine("Insert multi success.");
             }
             catch (Exception e)
@@ -34,6 +36,7 @@ namespace ClickHouse.DapperExtensions.Sample
         {
             conn.Execute(
                 "CREATE TABLE IF NOT EXISTS TestUser (ResisterDate Date, ResisterTime DateTime, Name String, Age UInt16) ENGINE=MergeTree(ResisterDate,(ResisterTime,Name,Age), 8192)");
+
             Console.WriteLine("Create table 'TestUser' success.");
         }
     }
